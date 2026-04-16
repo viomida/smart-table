@@ -1,6 +1,3 @@
-import {rules, createComparison} from "../lib/compare.js";
-
-
 export function initSearching(searchField, fieldName = "search") {
   return (query, state, action) => {
     // result заменили на query

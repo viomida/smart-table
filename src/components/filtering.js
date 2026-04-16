@@ -1,37 +1,66 @@
-import { sortCollection, sortMap } from "../lib/sort.js";
+export function initFiltering(elements) {
+  const updateIndexes = (elements, indexes) => {
+    Object.keys(indexes).forEach((elementName) => {
+      elements[elementName].append(
+        ...Object.values(indexes[elementName]).map((name) => {
+          const el = document.createElement("option");
+          el.textContent = name;
+          el.value = name;
+          return el;
+        })
+      );
+    });
+  };
 
-export function initSorting(columns) {
-  return (query, state, action) => {
-    let field = null;
-    let order = null;
-
-    if (action && action.name === "sort") {
-      // @todo: #3.1 — запомнить выбранный режим сортировки
-      action.dataset.value = sortMap[action.dataset.value]; // сохраним и применим как текущее следующее состояние из карты
-      field = action.dataset.field; // информация о сортируемом поле есть также в кнопке
-      order = action.dataset.value; // направление заберём прямо из датасета для точности
-      // @todo: #3.2 — сбросить сортировки остальных колонок
-      columns.forEach((column) => {
-        // перебираем элементы (в columns у нас массив кнопок)
-        if (column.dataset.field !== action.dataset.field) {
-          // если это не та кнопка, что нажал пользователь
-          column.dataset.value = "none"; // тогда сбрасываем её в начальное состояние
+  const applyFiltering = (query, state, action) => {
+    // код с обработкой очистки поля
+    if (action) {
+      const button = action.target || action;
+      if (button && button.name === "clear") {
+        const fieldName = button.getAttribute("data-field"); // "date" или "customer"
+        // ищем ближайший контейнер фильтра и внутри него input/select
+        let filterWrapper = button.parentElement;
+        // на всякий случай поднимемся до ближайшей колонки, если в filterWrapper не нашли
+        const input =
+          (filterWrapper && filterWrapper.querySelector && filterWrapper.querySelector("input, select")) ||
+          (button.closest && button.closest(".table-column") && button.closest(".table-column").querySelector("input, select"));
+        if (input) {
+          input.value = ""; // сбрасываем значение поля
         }
-      });
-    } else {
-      // @todo: #3.3 — получить выбранный режим сортировки
-      columns.forEach((column) => {
-        // перебираем все наши кнопки сортировки
-        if (column.dataset.value !== "none") {
-          // ищем ту, что находится не в начальном состоянии (предполагаем, что одна)
-          field = column.dataset.field; // сохраняем в переменных поле
-          order = column.dataset.value; // и направление сортировки
+        // синхронизируем state: сбрасываем значение в состоянии
+        if (fieldName && state && typeof state === "object") {
+          if (
+            state.filters && Object.prototype.hasOwnProperty.call(state.filters, fieldName)
+          ) {
+            state.filters[fieldName] = "";
+          } else {
+            state[fieldName] = "";
+          }
         }
-      });
+      }
     }
 
-    const sort = field && order !== "none" ? `${field}:${order}` : null; // сохраним в переменную параметр сортировки в виде field:direction
+    // @todo: #4.5 — отфильтровать данные, используя компаратор
+    const filter = {};
+    Object.keys(elements).forEach((key) => {
+      if (elements[key]) {
+        if (
+          ["INPUT", "SELECT"].includes(elements[key].tagName) &&
+          elements[key].value
+        ) {
+          // ищем поля ввода в фильтре с непустыми данными
+          filter[`filter[${elements[key].name}]`] = elements[key].value; // чтобы сформировать в query вложенный объект фильтра
+        }
+      }
+    });
 
-    return sort ? Object.assign({}, query, { sort }) : query; // по общему принципу, если есть сортировка, добавляем, если нет, то не трогаем query
+    return Object.keys(filter).length
+      ? Object.assign({}, query, filter)
+      : query; // если в фильтре что-то добавилось, применим к запросу
+  };
+
+  return {
+    updateIndexes,
+    applyFiltering,
   };
 }
