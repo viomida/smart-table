@@ -38,18 +38,17 @@ export const initPagination = (
   const updatePagination = (total, { page, limit }) => {
     pageCount = Math.ceil(total / limit);
     // @todo: #2.4 — получить список видимых страниц и вывести их
-    const visiblePages = getPages(page, pageCount, 5); // Получим массив страниц, которые нужно показать, выводим только 5 страниц
+    const visiblePages = getPages(page, pageCount, 5); // переносим
     pages.replaceChildren(
       ...visiblePages.map((pageNumber) => {
-        // перебираем их и создаём для них кнопку
-        const el = pageTemplate.cloneNode(true); // клонируем шаблон, который запомнили ранее
-        return createPage(el, pageNumber, pageNumber === page); // вызываем колбэк из настроек, чтобы заполнить кнопку данными
+        const el = pageTemplate.cloneNode(true); 
+        return createPage(el, pageNumber, pageNumber === page); 
       })
     );
     // @todo: #2.5 — обновить статус пагинации
-    fromRow.textContent = (page - 1) * limit + 1; // С какой строки выводим
-    toRow.textContent = Math.min(page * limit, total); // До какой строки выводим, если это последняя страница, то отображаем оставшееся количество
-    totalRows.textContent = total; // Сколько всего строк выводим на всех страницах вместе (после фильтрации будет меньше)
+    fromRow.textContent = (page - 1) * limit + 1; // Переносим
+    toRow.textContent = Math.min(page * limit, total); 
+    totalRows.textContent = total; 
   };
   return {
     updatePagination,

@@ -10,7 +10,6 @@ import {initTable} from "./components/table.js";
 // @todo: подключение
 
 
-// Исходные данные используемые в render()
 const {data, ...indexes} = initData(sourceData);
 
 /**
@@ -30,8 +29,7 @@ function collectState() {
  * @param {HTMLButtonElement?} action
  */
 function render(action) {
-    let state = collectState(); // состояние полей из таблицы
-    let result = [...data]; // копируем для последующего изменения
+    let state = collectState(); 
     // @todo: использование
 
 
